@@ -1,0 +1,31 @@
+@startuml
+actor Usuario as U
+participant "Frontend (Web/App)" as FE
+participant "Backend (API Auth)" as BE
+database "Base de Datos" as DB
+
+title Flujo de Login con JWT
+
+' --- Login / emisión de tokens ---
+U -> FE : Ingresar email y password
+FE -> BE : POST /auth/login {email, password}
+BE -> DB : Buscar usuario por email
+DB --> BE : Usuario (hash, activo, roles)
+
+alt Credenciales válidas y usuario activo
+  BE -> BE : Generar access_token (JWT exp corto)\ny refresh_token
+  BE -> DB : Guardar/actualizar refresh_token
+  BE --> FE : 200 OK {access_token, refresh_token, roles}
+else Credenciales inválidas o usuario inactivo
+  BE --> FE : 401/403 Error de autenticación
+end
+
+' --- Acceso a recurso protegido ---
+FE -> BE : GET /recurso\nAuthorization: Bearer access_token
+alt Token válido (firma y vigencia)
+  BE --> FE : 200 OK (datos)
+else Token inválido o expirado
+  BE --> FE : 401 Unauthorized
+end
+
+' --- Refr

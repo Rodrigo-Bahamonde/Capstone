@@ -1,0 +1,17 @@
+@startuml
+start
+
+:Administrador redacta aviso o noticia;
+:Sistema recibe el contenido;
+
+:Guardar aviso/noticia en PostgreSQL;
+
+if (Registro exitoso?) then (Sí)
+  :Publicar aviso en el portal web;
+  :Enviar notificaciones a vecinos (Email/WhatsApp);
+else (No)
+  :Notificar error al Administrador;
+endif
+
+stop
+@enduml

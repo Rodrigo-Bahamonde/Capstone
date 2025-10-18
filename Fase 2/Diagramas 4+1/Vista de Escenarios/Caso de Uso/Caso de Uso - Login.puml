@@ -1,0 +1,74 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7F7F7
+  BorderColor #555555
+}
+
+actor Usuario
+actor "Sistema Notificaciones\n(Email/WhatsApp)" as Noti
+
+rectangle "SITECOM – Autenticación y Sesiones (JWT)" as Sistema {
+
+  (Iniciar sesión) as UC_Login
+  (Validar credenciales) as UC_ValidarCred
+  (Verificar MFA) as UC_VerificarMFA
+  (Enviar código MFA) as UC_EnviarMFA
+
+  (Emitir access token) as UC_Access
+  (Emitir/rotar refresh token) as UC_RefreshIssue
+  (Persistir sesión/refresh) as UC_Persist
+
+  (Acceder a recurso protegido) as UC_Acceder
+  (Validar access token) as UC_ValidarAccess
+
+  (Refrescar tokens) as UC_Refresh
+  (Validar refresh token) as UC_ValidarRefresh
+
+  (Cerrar sesión) as UC_Logout
+  (Revocar refresh token) as UC_Revocar
+}
+
+' Actores ↔ Casos de uso
+Usuario --> UC_Login
+Usuario --> UC_Acceder
+Usuario --> UC_Refresh
+Usuario --> UC_Logout
+Noti  <-- UC_EnviarMFA
+
+' Flujo principal
+UC_Login --> UC_ValidarCred : <<include>>
+UC_Login ..> UC_VerificarMFA : <<extend>>\n(Si MFA habilitado)
+UC_VerificarMFA --> UC_EnviarMFA : <<include>>
+UC_Login --> UC_Access : <<include>>
+UC_Login --> UC_RefreshIssue : <<include>>
+UC_RefreshIssue --> UC_Persist : <<include>>
+
+' Uso de recursos protegidos
+UC_Acceder --> UC_ValidarAccess : <<include>>
+
+' Refresh de tokens
+UC_Refresh --> UC_ValidarRefresh : <<include>>
+UC_Refresh --> UC_Access : <<include>>
+UC_Refresh --> UC_RefreshIssue : <<include>>
+
+' Cierre de sesión
+UC_Logout --> UC_Revocar : <<include>>
+
+' Notas
+note right of UC_ValidarCred
+  Verifica email/usuario, estado activo,
+  política de intentos y hash de password.
+end note
+
+note bottom of UC_ValidarAccess
+  Valida firma, expiración, audiencia/emisor
+  y roles/scopes del access token.
+end note
+
+note bottom of UC_ValidarRefresh
+  Verifica vigencia, no revocado y rotación
+  segura del refresh token.
+end note
+@enduml

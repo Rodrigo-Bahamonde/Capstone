@@ -1,0 +1,34 @@
+@startuml
+title Diagrama de Comunicación - Solicitud de Certificado
+
+object "Vecino" as V
+object "Frontend (Web/App)" as FE
+object "Backend (API)" as BE
+object "Base de Datos" as DB
+object "Administrador Junta" as AJ
+object "Módulo Notificaciones" as NOTI
+
+
+V --> FE : 1. Solicitar certificado residencia
+FE --> BE : 2. Enviar solicitud certificado
+BE --> DB : 3. Verificar datos de vecino
+DB --> BE : 4. Respuesta validación
+
+
+BE --> AJ : 5. Enviar solicitud de aprobación
+AJ --> BE : 6. Aprobar/Rechazar solicitud
+
+
+BE --> DB : 7. Registrar certificado emitido
+BE --> NOTI : 8. Generar certificado (PDF/Email)
+NOTI --> V : 9. Enviar certificado
+
+
+BE --> NOTI : 10. Notificar rechazo
+NOTI --> V : 11. Enviar notificación rechazo
+
+
+BE --> NOTI : 12. Notificar error
+NOTI --> V : 13. Enviar error en solicitud
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+title Diagrama de Comunicación Clásico - Publicación de Avisos / Noticias
+
+object "Administrador Junta" as AJ
+object "Vecino" as V
+object "Frontend (Web/App)" as FE
+object "Backend (API)" as BE
+object "Base de Datos" as DB
+object "Módulo Notificaciones" as NOTI
+
+' Flujo base
+AJ --> FE : 1. Crear aviso / noticia
+FE --> BE : 2. Enviar datos de noticia
+BE --> DB : 3. Guardar aviso/noticia
+
+' Caso: Registro exitoso
+DB --> BE : 4. Confirmación de registro
+BE --> NOTI : 5. Enviar notificación (Email/WhatsApp/App)
+BE --> FE : 6. Publicar noticia en portal
+NOTI --> V : 7. Recibe notificación
+NOTI --> AJ : 8. Recibe notificación
+
+' Caso: Error en registro
+DB --> BE : 9. Error al guardar
+BE --> NOTI : 10. Notificar error de publicación
+NOTI --> AJ : 11. Error en publicación
+NOTI --> V : 12. Error en publicación
+
+@enduml

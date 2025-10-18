@@ -1,0 +1,72 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7F7F7
+  BorderColor #555555
+}
+
+actor Vecino
+actor "Administrador Junta" as Admin
+actor "Sistema Notificaciones\n(Email/WhatsApp/App)" as Noti
+
+rectangle "SITECOM – Módulo Noticias" as Sistema {
+
+  (Crear noticia) as UC_Crear
+  (Editar noticia) as UC_Editar
+  (Previsualizar noticia) as UC_Prev
+  (Guardar borrador) as UC_Borrador
+  (Publicar noticia) as UC_Publicar
+  (Programar publicación) as UC_Programar
+  (Despublicar/Archivar noticia) as UC_Archivar
+  (Eliminar noticia) as UC_Eliminar
+
+  (Adjuntar imágenes) as UC_Imagenes
+  (Notificar publicación) as UC_Notificar
+
+  (Ver noticias) as UC_Ver
+  (Filtrar/Buscar noticias) as UC_Buscar
+  (Ver detalle de noticia) as UC_Detalle
+}
+
+' Actores ↔ Casos de uso
+Admin  --> UC_Crear
+Admin  --> UC_Editar
+Admin  --> UC_Publicar
+Admin  --> UC_Programar
+Admin  --> UC_Archivar
+Admin  --> UC_Eliminar
+Admin  --> UC_Imagenes
+
+Vecino --> UC_Ver
+Vecino --> UC_Buscar
+Vecino --> UC_Detalle
+
+Noti  <-- UC_Notificar
+
+' Flujo y dependencias
+UC_Crear  --> UC_Prev : <<include>>
+UC_Editar --> UC_Prev : <<include>>
+UC_Crear  --> UC_Borrador : <<include>>
+UC_Editar --> UC_Borrador : <<include>>
+
+UC_Crear  ..> UC_Imagenes : <<extend>>\n(Si agrega medios)
+UC_Editar ..> UC_Imagenes : <<extend>>
+
+UC_Publicar --> UC_Notificar : <<include>>
+UC_Programar ..> UC_Publicar : <<extend>>\n(Tras fecha/hora programada)
+
+UC_Ver ..> UC_Buscar : <<extend>>
+UC_Ver ..> UC_Detalle : <<extend>>
+
+' Notas aclaratorias
+note right of UC_Publicar
+  Envía avisos por Email/WhatsApp/Afiche digital
+  a vecinos suscritos a notificaciones.
+end note
+
+note bottom of UC_Imagenes
+  Adjunta imágenes a la noticia.
+  Implementación: almacenamiento en CDN.
+end note
+@enduml

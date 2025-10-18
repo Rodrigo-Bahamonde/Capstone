@@ -1,0 +1,25 @@
+@startuml
+actor Vecino
+participant "Frontend (Web/App)" as FE
+participant "Backend (API)" as BE
+database "Base de Datos" as DB
+participant "Módulo Notificaciones" as NOTI
+
+title Certificado de Residencia (Autogenerado)
+
+Vecino -> FE : Solicitar certificado
+FE -> BE : POST /certificados
+BE -> DB : Validar inscripción
+DB --> BE : OK / No inscrito
+
+alt Vecino válido
+  BE -> DB : Registrar certificado
+  BE -> NOTI : Enviar certificado (PDF/Email)
+  NOTI --> Vecino : Certificado entregado
+  BE --> FE : 201 Created (id)
+else Vecino no válido
+  BE -> NOTI : Notificar requisito no cumplido
+  NOTI --> Vecino : Debe inscribirse
+  BE --> FE : 400 Bad Request
+end
+@enduml

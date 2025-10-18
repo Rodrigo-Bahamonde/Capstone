@@ -1,0 +1,42 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7F7F7
+  BorderColor #555555
+}
+
+' Actores
+actor Vecino
+actor "Sistema Notificaciones\n(Email/WhatsApp/App)" as Noti
+
+' Sistema
+rectangle "SITECOM – Módulo Certificados (AUTO)" as Sistema {
+  (Solicitar certificado de residencia) as UC_Solicitar
+  (Validar datos de vecino) as UC_Validar
+  (Registrar certificado) as UC_Registrar
+  (Emitir certificado PDF) as UC_Emitir
+  (Notificar entrega) as UC_Notificar
+  (Descargar certificado) as UC_Descargar
+  (Consultar estado de solicitud) as UC_Estado
+}
+
+' Actores ↔ Casos
+Vecino --> UC_Solicitar
+Vecino --> UC_Descargar
+Vecino --> UC_Estado
+Noti  <-- UC_Notificar
+
+' Dependencias
+UC_Solicitar --> UC_Validar   : <<include>>
+UC_Solicitar --> UC_Registrar : <<include>>
+UC_Registrar  --> UC_Emitir   : <<include>>
+UC_Emitir     --> UC_Notificar: <<include>>
+
+UC_Descargar ..> UC_Registrar : <<extend>>\n(Si emitido)
+
+note top of Sistema
+  Flujo AUTOMÁTICO: sin aprobación humana.
+  El sistema valida inscripción y emite el certificado.
+end note
+@enduml

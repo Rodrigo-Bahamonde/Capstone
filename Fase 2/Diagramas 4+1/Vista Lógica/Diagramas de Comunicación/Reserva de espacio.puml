@@ -1,0 +1,35 @@
+@startuml
+title Diagrama de Comunicación Clásico - Gestión de Reservas de Espacios
+
+object "Vecino" as V
+object "Administrador Junta" as AJ
+object "Frontend (Web/App)" as FE
+object "Backend (API)" as BE
+object "Base de Datos" as DB
+object "Módulo Notificaciones" as NOTI
+
+' Flujo principal
+V --> FE : 1. Solicitar reserva
+FE --> BE : 2. Enviar solicitud de reserva
+BE --> DB : 3. Verificar disponibilidad
+DB --> BE : 4. Confirmación disponibilidad
+
+' Caso: Espacio disponible
+BE --> AJ : 5. Notificar solicitud de reserva
+AJ --> BE : 6. Aprobar/Rechazar reserva
+
+' Subcaso: Reserva aprobada
+BE --> DB : 7. Registrar reserva aprobada
+BE --> NOTI : 8. Preparar notificación aprobación
+NOTI --> V : 9. Confirmación de reserva
+
+' Subcaso: Reserva rechazada
+BE --> DB : 10. Actualizar estado = Rechazada
+BE --> NOTI : 11. Preparar notificación rechazo
+NOTI --> V : 12. Aviso de rechazo
+
+' Caso: Espacio no disponible
+BE --> NOTI : 13. Generar notificación de no disponibilidad
+NOTI --> V : 14. Aviso espacio no disponible
+
+@enduml

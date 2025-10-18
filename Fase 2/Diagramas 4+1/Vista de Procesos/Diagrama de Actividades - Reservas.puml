@@ -1,0 +1,23 @@
+@startuml
+title Proceso: Reservas de Espacios (AUTOMÁTICO)
+
+start
+:Vecino solicita reserva\n(espacio, fecha y horario);
+if (¿Vecino inscrito en la Junta?) then (Sí)
+  :Verificar disponibilidad y reglas\n(horarios, solapamientos, límites);
+  if (¿Disponible y reglas OK?) then (Sí)
+    :Registrar reserva (estado = Confirmada);
+    :Enviar confirmación al vecino\n(Email/WhatsApp);
+  else (No)
+    if (¿Lista de espera habilitada?) then (Sí)
+      :Registrar en lista de espera;
+      :Notificar ingreso a lista de espera;
+    else (No)
+      :Notificar que el espacio no está disponible;
+    endif
+  endif
+else (No)
+  :Notificar que debe inscribirse en la Junta;
+endif
+stop
+@enduml

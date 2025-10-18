@@ -1,0 +1,41 @@
+@startuml
+actor Vecino
+actor "Administrador Junta" as Admin
+
+participant "Frontend (Web/App)" as FE
+participant "Backend (API)" as BE
+database "Base de Datos" as DB
+participant "Módulo Notificaciones" as NOTI
+
+== Flujo de Inscripción de Vecino ==
+
+Vecino -> FE : Completar formulario de inscripción
+FE -> BE : Enviar datos de inscripción
+BE -> DB : Registrar datos de vecino
+
+alt Datos válidos
+    BE --> FE : Confirmación de registro
+
+    alt Requiere validación de administrador
+        BE -> Admin : Enviar solicitud de validación
+        Admin -> BE : Aprobar/Rechazar inscripción
+
+        alt Aprobada
+            BE -> DB : Actualizar estado inscripción
+            BE -> NOTI : Generar mensaje de bienvenida
+            NOTI --> Vecino : Confirmación inscripción (Email/WhatsApp)
+        else Rechazada
+            BE -> NOTI : Generar notificación de rechazo
+            NOTI --> Vecino : Aviso de rechazo
+        end
+
+    else No requiere validación
+        BE -> NOTI : Generar mensaje de bienvenida
+        NOTI --> Vecino : Confirmación inscripción (Email/WhatsApp)
+    end
+
+else Datos inválidos
+    BE -> NOTI : Notificar error
+    NOTI --> Vecino : Mensaje de error en inscripción
+end
+@enduml

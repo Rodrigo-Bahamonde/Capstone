@@ -1,0 +1,62 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7F7F7
+  BorderColor #555555
+}
+
+actor Vecino
+actor "Administrador Junta" as Admin
+actor "Sistema Notificaciones\n(Email/WhatsApp/App)" as Noti
+
+rectangle "SITECOM – Módulo Inscripción" as Sistema {
+
+  (Solicitar inscripción a la Junta) as UC_Solicitar
+  (Validar datos y elegibilidad) as UC_Validar
+  (Confirmar correo electrónico) as UC_ConfirmarCorreo
+  (Enviar solicitud al Administrador) as UC_EnviarVal
+  (Aprobar/Rechazar inscripción) as UC_Aprobar
+  (Registrar inscripción) as UC_Registrar
+  (Generar credencial de vecino) as UC_Credencial
+  (Notificar resultado al solicitante) as UC_Notificar
+  (Consultar estado de solicitud) as UC_Estado
+  (Cancelar solicitud de inscripción) as UC_Cancelar
+}
+
+' Actores ↔ Casos de uso
+Vecino --> UC_Solicitar
+Vecino --> UC_Estado
+Vecino --> UC_Cancelar
+Admin  --> UC_Aprobar
+Noti  <-- UC_Notificar
+
+' Flujo principal y dependencias
+UC_Solicitar --> UC_Validar : <<include>>
+UC_Solicitar --> UC_ConfirmarCorreo : <<include>>
+
+' Ramas según política de validación
+UC_Solicitar ..> UC_EnviarVal : <<extend>>\n(Si requiere validación administrativa)
+UC_EnviarVal --> UC_Aprobar : <<include>>
+
+' Resultado de la decisión
+UC_Aprobar --> UC_Registrar : <<include>>
+UC_Registrar --> UC_Notificar : <<include>>
+UC_Registrar ..> UC_Credencial : <<extend>>\n(únicamente si Aprobado)
+
+' Consulta y cancelación
+UC_Estado --> UC_Notificar : <<include>>
+UC_Cancelar ..> UC_Notificar : <<extend>>
+
+' Notas aclaratorias
+note right of UC_Validar
+  - Verificar edad mínima (≥14)
+  - Verificar residencia en la unidad territorial
+  - Verificar duplicidad (ya inscrito)
+end note
+
+note bottom of UC_Credencial
+  Emite credencial/constancia de inscripción
+  disponible para descarga o envío por email.
+end note
+@enduml

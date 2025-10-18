@@ -1,0 +1,54 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7F7F7
+  BorderColor #555555
+}
+
+actor Vecino
+actor "Administrador Junta" as Admin
+actor "Sistema Notificaciones\n(Email/WhatsApp/App)" as Noti
+
+rectangle "SITECOM – Módulo Proyectos Vecinales" as Sistema {
+
+  ' --- Vecino (mínimo necesario) ---
+  (Ver convocatorias) as UC_VerConv
+  (Crear/Editar postulación) as UC_CrearEdit
+  (Enviar postulación) as UC_Enviar
+  (Consultar estado) as UC_Estado
+
+  ' --- Validación/Notificación (compartidos) ---
+  (Validar requisitos) as UC_ValidarReq
+  (Notificar resultado) as UC_Notificar
+
+  ' --- Administrador (mínimo necesario) ---
+  (Crear convocatoria) as UC_CrearConv
+  (Revisar postulaciones) as UC_Revisar
+  (Decidir aprobación/rechazo) as UC_Decidir
+  (Publicar resultados) as UC_Publicar
+}
+
+' ===== Actores ↔ Casos de uso (pocas flechas) =====
+Vecino --> UC_VerConv
+Vecino --> UC_CrearEdit
+Vecino --> UC_Enviar
+Vecino --> UC_Estado
+
+Admin  --> UC_CrearConv
+Admin  --> UC_Revisar
+Admin  --> UC_Decidir
+Admin  --> UC_Publicar
+
+Noti  <-- UC_Notificar
+
+' ===== Relaciones mínimas (reduce cruces) =====
+UC_Enviar --> UC_ValidarReq : <<include>>
+UC_Decidir --> UC_Notificar : <<include>>
+UC_Publicar --> UC_Notificar : <<include>>
+
+' (Opcional) Adjuntar documentos como extensión del editor
+'(Adjuntar documentos) as UC_Adjuntos
+'UC_CrearEdit ..> UC_Adjuntos : <<extend>>
+
+@enduml

@@ -1,0 +1,227 @@
+@startuml
+title Diagrama ER – SITECOM (versión actualizada)
+
+left to right direction
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor #FAFAFA
+  BorderColor #555
+}
+
+' =======================
+' ENTIDADES (tablas)
+' =======================
+
+entity "region" as REGION {
+  *id_region : varchar(10)
+  --
+  nombre_region : varchar(255)
+  roman_number : varchar(10)
+  region_number : varchar(5)
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "comuna" as COMUNA {
+  *id_comuna : varchar(60)
+  --
+  nombre_comuna : varchar(255)
+  id_region : varchar(10) <<FK>>
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "junta_vecinos" as JV {
+  *id_junta : int
+  --
+  nombre_junta : varchar(255)
+  id_comuna : varchar(60) <<FK>>
+}
+
+entity "rol" as ROL {
+  *id_rol : int
+  --
+  nombre_rol : varchar(255) <<UNIQUE>>
+}
+
+entity "usuario" as USR {
+  *id_usuario : int
+  --
+  id_rol : int <<FK,nullable>>
+  id_junta : int <<FK,nullable>>
+  rut : varchar(20)
+  nombre : varchar(255)
+  apellido : varchar(255)
+  email : varchar(255)
+  pass : varchar(255)
+  telefono : varchar(20)
+  fecha_nacimiento : date
+  direccion : varchar
+  activo : boolean
+}
+
+entity "tipo_certificado" as T_CERT {
+  *id_tpo_cert : int
+  --
+  nom_tpo_cert : varchar(255)
+}
+
+entity "certificado" as CERT {
+  *id_solic : int
+  --
+  id_usuario : int <<FK>>
+  id_tpo_cert : int <<FK>>
+  finalidad_tipo : varchar(255)
+  informacion_adicional : varchar(255)
+  url_certificado : varchar(255)
+  fecha_emision : timestamptz
+}
+
+entity "tipo_importancia" as T_IMP {
+  *id_tipo : int
+  --
+  nombre_tipo : varchar(100) <<UNIQUE>>
+}
+
+entity "noticias" as NEWS {
+  *id_noticia : int
+  --
+  id_usuario : int <<FK>>
+  id_tipo : int <<FK>>
+  titulo : varchar
+  cuerpo : varchar(255)
+  fecha_noticia : timestamptz
+  creadopor : varchar
+}
+
+entity "notificaciones" as NOTI {
+  *id_notificacion : int
+  --
+  id_usuario : int <<FK,nullable>>
+  asunto : varchar(255)
+  cuerpo : varchar(255)
+  canal : varchar(255)
+}
+
+entity "estado_solicitud" as EST {
+  *id_estado : int
+  --
+  nombre_estado : varchar(100) <<UNIQUE>>
+}
+
+entity "tipo_postulacion" as T_POS {
+  *id_tpo : int
+  --
+  nombre_tipo : varchar(255)
+}
+
+entity "postulacion_proyecto" as PROY {
+  *id_solic : int
+  --
+  id_tpo : int <<FK>>
+  id_usuario : int <<FK>>
+  id_estado : int <<FK>>
+  nombre_proyecto : varchar(255)
+  descripcion : varchar(255)
+  ubicacion : varchar(255)
+  presupuesto : numeric(14,2)
+  duracion : varchar(255)
+  beneficiarios : varchar(255)
+  objetivo : varchar(255)
+  justificacion : varchar(255)
+  fch_acepta : timestamptz
+  fch_rechaza : timestamptz
+  motivo_rechazo : varchar(255)
+}
+
+entity "espacios_publicos" as ESP {
+  *id_espacio : int
+  --
+  nombre_espacio : varchar(255) <<UNIQUE>>
+  cupo_total : int
+}
+
+entity "espacio_junta" as EJ {
+  *id : int
+  --
+  id_junta : int <<FK>>
+  id_espacio : int <<FK>>
+  ' UNIQUE (id_junta, id_espacio)
+}
+
+entity "inscripcion_actividad" as ACT {
+  *id_solic_act : int
+  --
+  id_usuario : int <<FK>>      ' anfitrión/creador
+  id_espacio : int <<FK>>
+  nombre_actividad : varchar(255)
+  descripcion : varchar(255)
+  ubicacion : varchar(255)
+  fecha_actividad : date
+  hora_inicio : time
+  hora_fin : time
+  cupo_total : int
+}
+
+entity "invitados" as INV {
+  *id_solic_act : int <<FK>>
+  *rut : varchar(20)
+  --
+  dv : varchar(3)
+  nombre : varchar(255)
+  apellido : varchar(255)
+  telefono : varchar(20)
+}
+
+entity "tipo_token" as TTK {
+  *id_tipo_token : int
+  --
+  nombre_tipo : varchar(50) <<UNIQUE>>
+  descripcion : text
+}
+
+entity "refresh_tokens" as RTK {
+  *id_token : uuid
+  --
+  id_usuario : int <<FK>>
+  token_hash : bytea
+  created_at : timestamptz
+  expires_at : timestamptz
+  revoked_at : timestamptz <<nullable>>
+  id_tipo_token : int <<FK,nullable>>
+  ' UNIQUE (id_usuario, token_hash)
+}
+
+' =======================
+' RELACIONES
+' =======================
+
+REGION ||--o{ COMUNA : "1:N"
+COMUNA ||--o{ JV : "1:N"
+
+ROL ||--o{ USR : "1:N"
+JV  ||--o{ USR : "1:N (miembros)"
+USR ||--o{ CERT : "1:N"
+T_CERT ||--o{ CERT : "1:N (cat.)"
+
+USR  ||--o{ NEWS : "1:N"
+T_IMP ||--o{ NEWS : "1:N (cat.)"
+
+USR  ||--o{ NOTI : "1:N (opcional)"
+
+T_POS ||--o{ PROY : "1:N (tipo)"
+EST   ||--o{ PROY : "1:N (estado)"
+USR   ||--o{ PROY : "1:N (postulante)"
+
+JV  ||--o{ EJ : "1:N"
+ESP ||--o{ EJ : "1:N"
+ESP ||--o{ ACT : "1:N"
+USR ||--o{ ACT : "1:N (creador)"
+
+ACT ||--o{ INV : "1:N"
+
+USR ||--o{ RTK : "1:N"
+TTK ||--o{ RTK : "1:N (opcional)"
+
+@enduml

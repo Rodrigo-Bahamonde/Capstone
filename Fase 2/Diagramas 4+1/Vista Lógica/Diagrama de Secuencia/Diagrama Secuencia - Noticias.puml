@@ -1,0 +1,26 @@
+@startuml
+actor "Administrador Junta" as Admin
+actor Vecino
+
+participant "Frontend (Web/App)" as FE
+participant "Backend (API)" as BE
+database "Base de Datos" as DB
+participant "Módulo Notificaciones" as NOTI
+
+== Flujo de Publicación de Avisos / Noticias ==
+
+Admin -> FE : Crear aviso / noticia
+FE -> BE : Enviar datos de noticia
+BE -> DB : Guardar aviso/noticia
+
+alt Registro exitoso
+    BE --> FE : Confirmación de registro
+    BE -> NOTI : Enviar notificación (Email/WhatsApp/App)
+    BE -> FE : Publicar noticia en portal
+    NOTI --> Vecino : Recibe notificación
+else Error en registro
+    BE -> FE : Error al guardar
+    BE -> NOTI : Notificar error de publicación
+    NOTI --> Admin : Error en publicación
+end
+@enduml

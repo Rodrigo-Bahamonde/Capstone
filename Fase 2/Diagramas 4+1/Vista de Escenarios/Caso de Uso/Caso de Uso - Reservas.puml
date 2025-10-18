@@ -1,0 +1,70 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7F7F7
+  BorderColor #555555
+}
+
+' Actores
+actor Vecino
+actor "Administrador Junta" as Admin
+actor "Sistema Notificaciones\n(Email/WhatsApp/App)" as Noti
+
+' Sistema
+rectangle "SITECOM – Módulo Reservas (AUTO)" as Sistema {
+  (Explorar espacios) as UC_Explorar
+  (Ver calendario del espacio) as UC_Calendario
+
+  (Solicitar reserva) as UC_Solicitar
+  (Validar pertenencia a la Junta) as UC_ValidarJunta
+  (Validar reglas y solapamientos) as UC_ValidarReglas
+  (Verificar disponibilidad) as UC_Disponibilidad
+  (Registrar reserva confirmada) as UC_Confirmar
+  (Registrar en lista de espera) as UC_Lista
+  (Notificar resultado) as UC_Notificar
+
+  (Consultar estado de reserva) as UC_Estado
+  (Cancelar reserva) as UC_Cancelar
+  (Liberar cupo) as UC_Liberar
+  (Asignar desde lista de espera) as UC_AsignarLE
+
+  ' Gestión (fuera del flujo automático)
+  (Administrar espacios) as UC_AdminEspacios
+  (Definir reglas y horarios) as UC_AdminReglas
+  (Bloquear/Desbloquear horarios) as UC_Bloquear
+}
+
+' Actores ↔ Casos
+Vecino --> UC_Explorar
+Vecino --> UC_Calendario
+Vecino --> UC_Solicitar
+Vecino --> UC_Estado
+Vecino --> UC_Cancelar
+
+Admin  --> UC_AdminEspacios
+Admin  --> UC_AdminReglas
+Admin  --> UC_Bloquear
+Noti   <-- UC_Notificar
+
+' Dependencias del flujo automático
+UC_Solicitar --> UC_ValidarJunta     : <<include>>
+UC_Solicitar --> UC_ValidarReglas    : <<include>>
+UC_Solicitar --> UC_Disponibilidad   : <<include>>
+UC_Solicitar ..> UC_Confirmar        : <<extend>>\n(Disponible + reglas OK)
+UC_Solicitar ..> UC_Lista            : <<extend>>\n(No disponible)
+
+UC_Confirmar --> UC_Notificar : <<include>>
+UC_Lista     --> UC_Notificar : <<include>>
+
+' Cancelación y reasignación automática
+UC_Cancelar  --> UC_Liberar   : <<include>>
+UC_Liberar   ..> UC_AsignarLE : <<extend>>\n(Si hay lista de espera)
+UC_AsignarLE --> UC_Notificar : <<include>>
+UC_Cancelar  --> UC_Notificar : <<include>>
+
+note top of Sistema
+  Flujo AUTOMÁTICO: la reserva se confirma si hay disponibilidad
+  y se cumplen reglas. Sin revisión humana. Lista de espera opcional.
+end note
+@enduml

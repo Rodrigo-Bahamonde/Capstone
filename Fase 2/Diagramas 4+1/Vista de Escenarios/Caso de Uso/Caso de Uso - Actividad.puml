@@ -1,0 +1,60 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #F7F7F7
+  BorderColor #555555
+}
+
+' Actores
+actor Vecino
+actor "Administrador Junta" as Admin
+actor "Sistema Notificaciones\n(Email/WhatsApp/App)" as Noti
+
+' Sistema
+rectangle "SITECOM – Módulo Actividades (AUTO)" as Sistema {
+  (Explorar/Buscar actividades) as UC_Buscar
+  (Ver detalle de actividad) as UC_Detalle
+
+  (Inscribirse en actividad) as UC_Inscribir
+  (Validar pertenencia a la Junta) as UC_ValidarJunta
+  (Verificar cupos) as UC_VerificarCupo
+  (Registrar inscripción confirmada) as UC_Confirmar
+  (Registrar en lista de espera) as UC_Lista
+  (Notificar confirmación/estado) as UC_Notificar
+
+  (Consultar estado de inscripción) as UC_Estado
+  (Cancelar inscripción) as UC_Cancelar
+
+  ' Gestión (no forma parte del flujo principal automático)
+  (Crear/editar actividad) as UC_AdminCrear
+  (Gestionar cupos) as UC_AdminCupos
+}
+
+' Actores ↔ Casos
+Vecino --> UC_Buscar
+Vecino --> UC_Detalle
+Vecino --> UC_Inscribir
+Vecino --> UC_Estado
+Vecino --> UC_Cancelar
+
+Admin  --> UC_AdminCrear
+Admin  --> UC_AdminCupos
+Noti   <-- UC_Notificar
+
+' Dependencias del flujo automático
+UC_Inscribir --> UC_ValidarJunta  : <<include>>
+UC_Inscribir --> UC_VerificarCupo : <<include>>
+UC_Inscribir ..> UC_Confirmar     : <<extend>>\n(Cupo disponible)
+UC_Inscribir ..> UC_Lista         : <<extend>>\n(Sin cupo)
+
+UC_Confirmar --> UC_Notificar : <<include>>
+UC_Lista     --> UC_Notificar : <<include>>
+UC_Cancelar  --> UC_Notificar : <<include>>
+
+note top of Sistema
+  Flujo AUTOMÁTICO: la inscripción se confirma
+  si hay cupo; de lo contrario, lista de espera.
+  Sin aprobación humana.
+end note
+@enduml
