@@ -1,0 +1,36 @@
+@startuml
+title Diagrama de Comunicación Clásico - Login con JWT
+
+object "Usuario" as U
+object "Frontend (Web/App)" as FE
+object "Backend (API Auth)" as BE
+object "Base de Datos" as DB
+
+' Flujo inicial login
+U --> FE : 1. Ingresar email y password
+FE --> BE : 2. POST /auth/login {email, password}
+BE --> DB : 3. Buscar usuario por email
+DB --> BE : 4. Retorna usuario (hash, activo, roles)
+
+' Credenciales válidas y usuario activo
+BE --> BE : 5. Generar access_token y refresh_token
+BE --> DB : 6. Guardar/actualizar refresh_token
+BE --> FE : 7. 200 OK {access_token, refresh_token, roles}
+FE --> U : 8. Mostrar acceso exitoso
+
+' Credenciales inválidas o usuario inactivo
+BE --> FE : 9. 401/403 Error autenticación
+FE --> U : 10. Mostrar error acceso
+
+' Validación de acceso a recurso
+FE --> BE : 11. GET /recurso con Bearer access_token
+
+' Token válido
+BE --> FE : 12. 200 OK (datos)
+FE --> U : 13. Mostrar recurso
+
+' Token inválido o expirado
+BE --> FE : 14. 401 Unauthorized
+FE --> U : 15. Mostrar error sesión expirada
+
+@enduml

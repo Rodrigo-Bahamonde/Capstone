@@ -1,0 +1,37 @@
+@startuml
+actor Vecino
+participant "Frontend (Web/App)" as FE
+participant "Backend (API)" as BE
+database "Base de Datos" as DB
+participant "Módulo Notificaciones" as NOTI
+
+title Reservas de Espacios (Autogeneradas)
+
+Vecino -> FE : Solicitar reserva
+FE -> BE : POST /reservas
+BE -> DB : Validar pertenencia
+DB --> BE : OK / No inscrito
+
+alt Vecino válido
+  BE -> DB : Verificar disponibilidad y reglas
+  alt Disponible y reglas OK
+    BE -> DB : Registrar reserva (Confirmada)
+    BE -> NOTI : Enviar confirmación
+    NOTI --> Vecino : Reserva confirmada
+    BE --> FE : 201 Created
+  else No disponible o regla no cumple
+    alt Lista de invitados habilitada
+      BE -> DB : Registrar en lista de invitados
+      BE -> NOTI : Aviso lista de invitados
+      NOTI --> Vecino : En lista de invitados
+      BE --> FE : 202 Accepted
+    else Sin lista de invitados
+      BE --> FE : 409 Conflict
+    end
+  end
+else Vecino no válido
+  BE -> NOTI : Inscripción requerida
+  NOTI --> Vecino : Debe inscribirse en la Junta
+  BE --> FE : 400/401
+end
+@enduml

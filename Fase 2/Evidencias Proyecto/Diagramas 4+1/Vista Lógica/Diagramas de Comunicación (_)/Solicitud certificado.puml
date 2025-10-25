@@ -1,0 +1,39 @@
+@startuml
+title Diagrama de Comunicación - Certificado de Residencia (Autogenerado)
+
+object "Vecino" as V
+object "Frontend (Web/App)" as FE
+object "Backend (API)" as BE
+object "Base de Datos" as DB
+object "Módulo Notificaciones" as NOTI
+
+' --- Flujo principal ---
+V --> FE : 1. Solicitar certificado de residencia
+FE --> BE : 2. POST /certificados (enviar solicitud)
+BE --> DB : 3. Validar inscripción del vecino
+DB --> BE : 4. Respuesta validación (OK / No inscrito)
+
+' --- Caso: Vecino válido ---
+BE --> DB : 5. Registrar certificado generado
+BE --> NOTI : 6. Enviar certificado (PDF / Email)
+NOTI --> V : 7. Certificado entregado
+BE --> FE : 8. Responder 201 Created (id certificado)
+
+note right of BE
+[Condición: Vecino válido]
+El sistema genera el certificado automáticamente
+y lo envía al correo del vecino.
+end note
+
+' --- Caso: Vecino no válido ---
+BE --> NOTI : 9. Notificar requisito no cumplido
+NOTI --> V : 10. Aviso: debe inscribirse
+BE --> FE : 11. Responder 400 Bad Request
+
+note right of NOTI
+[Condición: Vecino no válido]
+Se informa al vecino que debe inscribirse
+antes de solicitar certificados.
+end note
+
+@enduml

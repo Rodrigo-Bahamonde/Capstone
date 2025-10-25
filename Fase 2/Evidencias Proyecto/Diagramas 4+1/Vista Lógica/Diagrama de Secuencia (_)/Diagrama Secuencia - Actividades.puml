@@ -1,0 +1,39 @@
+@startuml
+actor Vecino
+participant "Frontend (Web/App)" as FE
+participant "Backend (API)" as BE
+database "Base de Datos" as DB
+participant "Módulo Notificaciones" as NOTI
+
+title Inscripción a Actividades (Autogenerada)
+
+Vecino -> FE : Inscribirse en actividad
+FE -> BE : POST /actividades/{id}/inscripciones
+BE -> DB : Validar vecino inscrito
+DB --> BE : OK / No inscrito
+
+alt Vecino válido
+  BE -> DB : Consultar cupos
+  alt Cupo disponible
+    BE -> DB : Registrar inscripción (Confirmada)
+    BE -> NOTI : Enviar confirmación
+    NOTI --> Vecino : Confirmación
+    BE --> FE : 201 Created
+  else Sin cupo
+    alt Lista de invitados habilitada
+      BE -> DB : Registrar en lista de invitados
+      BE -> NOTI : Aviso lista de invitados
+      NOTI --> Vecino : En lista de invitados
+      BE --> FE : 202 Accepted
+    else Sin lista de invitados
+      BE -> NOTI : Aviso sin cupo
+      NOTI --> Vecino : No hay cupos
+      BE --> FE : 409 Conflict
+    end
+  end
+else Vecino no válido
+  BE -> NOTI : Debe inscribirse en la Junta
+  NOTI --> Vecino : No estás inscrito
+  BE --> FE : 400/401
+end
+@enduml

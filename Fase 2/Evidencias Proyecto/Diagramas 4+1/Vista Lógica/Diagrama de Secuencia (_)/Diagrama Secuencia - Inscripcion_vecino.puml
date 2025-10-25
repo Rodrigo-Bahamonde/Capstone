@@ -1,0 +1,31 @@
+@startuml
+actor "Administrador Junta" as Admin
+actor Vecino
+
+participant "Frontend (Web/App)" as FE
+participant "Backend (API)" as BE
+database "Base de Datos" as DB
+participant "Módulo Notificaciones" as NOTI
+
+== Flujo de Inscripción de Vecino (por Administrador) ==
+
+Admin -> FE : Completar formulario de inscripción del vecino
+FE -> BE : Enviar datos de inscripción
+BE -> DB : Registrar nuevo vecino (estado: pendiente de activación)
+
+alt Registro exitoso
+    BE -> NOTI : Generar correo de inscripción
+    NOTI --> Vecino : Enviar correo con enlace para definir contraseña
+
+    == Activación de cuenta ==
+    Vecino -> FE : Acceder al enlace de definición de contraseña
+    FE -> BE : Enviar nueva contraseña
+    BE -> DB : Actualizar contraseña y activar cuenta
+    BE -> NOTI : Enviar confirmación de activación
+    NOTI --> Vecino : Confirmación de cuenta activa
+
+else Error en registro
+    BE -> NOTI : Notificar error al administrador
+    NOTI --> Admin : Mensaje de error en registro
+end
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+title Diagrama de Comunicación Clásico - Postulación de Proyecto Vecinal
+
+' Distribución de elementos en horizontal para evitar superposición
+rectangle Vecino as V
+rectangle "Frontend (Web/App)" as FE
+rectangle "Backend (API)" as BE
+rectangle "Base de Datos" as DB
+rectangle "Módulo Notificaciones" as NOTI
+rectangle "Administrador Junta" as AJ
+
+' Reordenamos conexiones en un flujo más visual
+
+' Flujo base
+V -right-> FE : 1. Completar formulario postulación
+FE -right-> BE : 2. Enviar datos postulación
+BE -down-> DB : 3. Registrar proyecto (Pendiente)
+
+' Caso: Registro exitoso
+DB -up-> BE : 4. Confirmación de registro
+BE -down-> NOTI : 5. Notificar nueva postulación
+BE -up-> AJ : 6. Revisar y Aprobar/Rechazar proyecto
+
+' Proyecto aprobado
+AJ -down-> BE : 7. Aprobar proyecto
+BE -down-> DB : 8. Actualizar estado = Aprobado
+BE -right-> NOTI : 9. Preparar notificación aprobación
+NOTI -left-> V : 10. Resultado (Aprobado)
+
+' Proyecto rechazado
+AJ -down-> BE : 11. Rechazar proyecto
+BE -down-> DB : 12. Actualizar estado = Rechazado
+BE -right-> NOTI : 13. Preparar notificación rechazo
+NOTI -left-> V : 14. Resultado (Rechazado)
+
+' Error en registro
+DB -up-> BE : 15. Error en postulación
+BE -right-> NOTI : 16. Generar notificación error
+NOTI -left-> V : 17. Error en postulación
+
+@enduml

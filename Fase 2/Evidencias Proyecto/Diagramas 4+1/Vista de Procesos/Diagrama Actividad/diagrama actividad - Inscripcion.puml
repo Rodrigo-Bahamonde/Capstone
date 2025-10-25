@@ -1,0 +1,29 @@
+@startuml
+start
+
+:Vecino completa formulario de inscripción;
+:Sistema recibe solicitud;
+
+if (Datos válidos?) then (Sí)
+  :Registrar datos en PostgreSQL;
+  if (¿Requiere validación de Admin?) then (Sí)
+    :Notificar solicitud al Administrador;
+    :Administrador revisa inscripción;
+    if (Aprobada?) then (Sí)
+      :Actualizar estado en BD = Aprobado;
+      :Enviar notificación de bienvenida (Email/WhatsApp);
+    else (No)
+      :Actualizar estado en BD = Rechazado;
+      :Enviar notificación de rechazo;
+    endif
+  else (No)
+    :Confirmar inscripción automáticamente;
+    :Enviar notificación de bienvenida (Email/WhatsApp);
+  endif
+else (No)
+  :Rechazar inscripción;
+  :Enviar notificación de error al Vecino;
+endif
+
+stop
+@enduml
